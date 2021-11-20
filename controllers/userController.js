@@ -3,7 +3,7 @@ const { body } = require('express-validator');
 
 const User = require('../models/user');
 const UserService = require('../services/userService');
-const { authLocal } = require('../utils/auth');
+const { authLocal, refreshToken } = require('../utils/auth');
 const { validateErrorsWithCustomHTTPStatus, validateErrors } = require('../utils/validator');
 
 const UserServiceInstance = new UserService();
@@ -12,6 +12,7 @@ exports.get_user_list = async (req, res, next) => {
 	try {
 		const users = await UserServiceInstance.getUsers();
 		return res.json({
+			success: true,
 			users,
 		});
 	} catch (e) {
@@ -23,6 +24,7 @@ exports.get_user = async (req, res, next) => {
 	try {
 		const user = await UserServiceInstance.getUser(req.params.userId);
 		return res.json({
+			success: true,
 			user,
 		});
 	} catch (e) {
@@ -70,7 +72,7 @@ exports.signup = [
 				user.save()
 					.then(() => {
 						res.json({
-							message: 'Sign up successful',
+							success: true,
 							username: user.username,
 						});
 					})
@@ -82,9 +84,5 @@ exports.signup = [
 
 exports.login = authLocal;
 
-exports.logout = (req, res, next) => {
-	res.json({
-		msg: 'To Implement',
-	});
-};
+exports.refreshToken = refreshToken;
 

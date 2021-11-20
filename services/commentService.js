@@ -12,10 +12,11 @@ class CommentService {
 		return Comment.findById(commentId);
 	};
 
-	createComment = (postId, user, content) => {
+	createComment = (postId, user, name, content) => {
 		const comment = new Comment({
 			post: postId,
 			user,
+			name,
 			content,
 		});
 		return comment.save();

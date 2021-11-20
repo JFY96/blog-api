@@ -26,4 +26,13 @@ const PostSchema = new Schema({
 	},
 });
 
+PostSchema.set('toObject', { virtuals: true });
+PostSchema.set('toJSON', { virtuals: true });
+
+PostSchema
+	.virtual('unixTimestamp')
+	.get(function() {
+		return this.timestamp.getTime();
+	});
+
 module.exports = mongoose.model('Post', PostSchema);

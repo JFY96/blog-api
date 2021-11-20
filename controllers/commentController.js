@@ -18,6 +18,7 @@ exports.get_comments = async (req, res, next) => {
 	try {
 		const comments = await CommentServiceInstance.getComments(req.params.postId);
 		return res.json({
+			success: true,
 			comments,
 		});
 	} catch (e) {
@@ -29,6 +30,7 @@ exports.get_comment = async (req, res, next) => {
 	try {
 		const comment = await CommentServiceInstance.getComment(req.params.commentId);
 		return res.json({
+			success: true,
 			comment,
 		});
 	} catch (e) {
@@ -37,6 +39,8 @@ exports.get_comment = async (req, res, next) => {
 };
 
 exports.create_comment = [
+	body('name')
+		.trim(),
 	body('content')
 		.trim()
 		.notEmpty()
@@ -44,9 +48,10 @@ exports.create_comment = [
 	validateErrors,
 	async (req, res, next) => {
 		try {
-			const comment = await CommentServiceInstance.createComment(req.params.postId, req.user._id, req.body.content);
+			const name = req.user ? req.user.username : req.body.name ?? '';
+			const comment = await CommentServiceInstance.createComment(req.params.postId, req.user._id, name, req.body.content);
 			return res.json({
-				msg: 'Comment created',
+				success: true,
 				comment,
 			});
 		} catch (e) {
@@ -67,7 +72,7 @@ exports.update_comment = [
 		try {
 			await CommentServiceInstance.updateComment(req.params.commentId, req.body.content);
 			return res.json({
-				msg: 'Comment updated',
+				success: true,
 			});
 		} catch (e) {
 			return next(e);
@@ -81,7 +86,7 @@ exports.delete_comment = [
 		try {
 			await CommentServiceInstance.deleteComment(req.params.commentId);
 			return res.json({
-				msg: 'Comment deleted',
+				success: true,
 			});
 		} catch (e) {
 			return next(e);

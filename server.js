@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const dotenv_result = require('dotenv').config();
 if (dotenv_result.error) throw dotenv_result.error;
@@ -18,16 +20,28 @@ if (!DB_URI) {
 
 // passport js setup
 require('./utils/passport');
-const { authJWT } = require('./utils/auth');
+const { authJWT, authJWTPublic } = require('./utils/auth');
 
 // application middlewares
-app.use(passport.initialize());
+app.use(cookieParser());
 app.use(express.json());
+app.use(passport.initialize());
+app.use(cors(
+	{
+		origin: ["http://localhost:8080"], // TODO add in environment variables ?
+		methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+		preflightContinue: false,
+		optionsSuccessStatus: 204,
+		credentials: true,
+	}
+));
 
 // routes
 const authRouter = require('./routes/authRouter');
+const apiPublicRouter = require('./routes/apiPublicRouter');
 const apiRouter = require('./routes/apiRouter');
 app.use('/api/auth', authRouter);
+app.use('/api', authJWTPublic, apiPublicRouter);
 app.use('/api', authJWT, apiRouter);
 
 module.exports = async () => {

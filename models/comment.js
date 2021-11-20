@@ -12,6 +12,9 @@ const CommentSchema = new Schema({
 		type: String,
 		required: true,
 	},
+	name: {
+		type: String,
+	},
 	user: {
 		type: Schema.Types.ObjectId,
 		ref: 'User',
@@ -21,5 +24,14 @@ const CommentSchema = new Schema({
 		default: Date.now(),
 	},
 });
+
+CommentSchema.set('toObject', { virtuals: true });
+CommentSchema.set('toJSON', { virtuals: true });
+
+CommentSchema
+	.virtual('unixTimestamp')
+	.get(function() {
+		return this.timestamp.getTime();
+	});
 
 module.exports = mongoose.model('Comment', CommentSchema);

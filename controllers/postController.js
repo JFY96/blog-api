@@ -19,6 +19,7 @@ exports.get_posts = async (req, res, next) => {
 	try {
 		const posts = await PostServiceInstance.getPosts();
 		return res.json({
+			success: true,
 			posts,
 		});
 	} catch(err) {
@@ -30,7 +31,8 @@ exports.get_post = async (req, res, next) => {
 	try {
 		const post = await PostServiceInstance.getPost(req.params.postId);
 		return res.json({
-			post
+			success: true,
+			post,
 		});
 	} catch(err) {
 		return next(err);
@@ -53,7 +55,7 @@ exports.create_post = [
 		try {
 			const updatedPost = await PostServiceInstance.createPost(req.body, req.user);
 			return res.json({
-				msg: 'Post created',
+				success: true,
 				post: updatedPost,
 			});
 		} catch(err) {
@@ -76,7 +78,7 @@ exports.update_post = [
 		try {
 			const result = await PostServiceInstance.updatePost(req.params.postId, req.body);
 			return res.json({
-				msg: result.acknowledged ? 'Post updated' : 'Post was not updated',
+				success: result.acknowledged,
 			});
 		} catch(err) {
 			return next(err);
@@ -90,7 +92,7 @@ exports.delete_post = [
 		try {
 			await PostServiceInstance.deletePost(req.params.postId);
 			return res.json({
-				msg: 'Post deleted',
+				success: true,
 				postId: req.params.postId,
 			});
 		} catch(err) {

@@ -22,6 +22,7 @@ const validateErrorsWithCustomHTTPStatus = (httpStatus) => (req, res, next) => {
 	}, {});
 
 	return res.status(httpStatus).json({
+		success: false,
 		errors: extractedErrors,
 	});
 };
