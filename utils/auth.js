@@ -81,6 +81,15 @@ exports.refreshToken = async (req, res, next) => {
 	}
 };
 
+exports.removeToken = async (req, res, next) => {
+	refreshTokens.delete(req.cookies.refreshToken);
+	res.clearCookie('refreshToken');
+	return res.json({
+		success: true,
+		error: '',
+	});
+}
+
 exports.authJWT = (req, res, next) => passport.authenticate(
 	'jwt', 
 	{ session: false },

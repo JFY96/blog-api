@@ -3,7 +3,7 @@ const { body } = require('express-validator');
 
 const User = require('../models/user');
 const UserService = require('../services/userService');
-const { authLocal, refreshToken } = require('../utils/auth');
+const { authLocal, refreshToken, removeToken } = require('../utils/auth');
 const { validateErrorsWithCustomHTTPStatus, validateErrors } = require('../utils/validator');
 
 const UserServiceInstance = new UserService();
@@ -85,4 +85,6 @@ exports.signup = [
 exports.login = authLocal;
 
 exports.refreshToken = refreshToken;
+
+exports.logout = removeToken;
 
