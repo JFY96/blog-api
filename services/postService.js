@@ -3,8 +3,12 @@ const Comment = require('../models/comment');
 
 class PostService {
 
-	getPosts = async () => {
-		return Post.find()
+	getPosts = async (admin = false) => {
+		const params = {};
+		if (!admin) {
+			params.published = true;
+		}
+		return Post.find(params)
 			.sort([['timestamp', 'asc']])
 			.exec();
 	}
@@ -25,15 +29,16 @@ class PostService {
 			title: body.title,
 			content: body.content,
 			user: user._id,
-			private: false,
+			published: false,
 		});
 		return post.save();
 	};
 
 	updatePost = async (postId, body) => {
 		const updateArr = {};
-		if (body.title) updateArr.title = body.title;
-		if (body.content) updateArr.content = body.content;
+		if (body.title !== undefined) updateArr.title = body.title;
+		if (body.content !== undefined) updateArr.content = body.content;
+		if (body.published !== undefined) updateArr.published = body.published;
 		return Post.updateOne({ _id: postId }, updateArr);
 	}
 }

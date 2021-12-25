@@ -2,11 +2,20 @@ const { validationResult } = require('express-validator');
 
 // validation to only allow user who owns a resource, or an admin to modify
 const checkReqUser = (req, res, next, user) => {
-	if (!user || !req.user || (user.toString() !== req.user._id.toString() && !req.user.admin)) {
+	if (!req.user.admin && (!user || !req.user || user.toString() !== req.user._id.toString())) {
 		return res.status(401).json({
+			success: false,
 			error: 'User not authorized',
 		});
 	}
+	return next();
+};
+
+const checkAdminUser = (req, res, next, adminRequired = true) => {
+	if (adminRequired && !req.user.admin) return res.status(401).json({
+		success: false,
+		error: 'User not authorized',
+	});
 	return next();
 };
 
@@ -31,6 +40,7 @@ const validateErrors = validateErrorsWithCustomHTTPStatus(422); // 422 UNPROCESS
 
 module.exports = {
 	checkReqUser,
+	checkAdminUser,
 	validateErrorsWithCustomHTTPStatus,
 	validateErrors,
 };

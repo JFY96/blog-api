@@ -28,6 +28,7 @@ const jwtSign = (res, user) => {
 		res.json({
 			success: true,
 			user: user.username,
+			admin: user.admin,
 			expires: payload.expires,
 			token,
 		});

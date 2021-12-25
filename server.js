@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
 
 const dotenv_result = require('dotenv').config();
 if (dotenv_result.error) throw dotenv_result.error;
@@ -23,6 +24,7 @@ require('./utils/passport');
 const { authJWT, authJWTPublic } = require('./utils/auth');
 
 // application middlewares
+app.use(morgan('short'));
 app.use(cookieParser());
 app.use(express.json());
 app.use(passport.initialize());

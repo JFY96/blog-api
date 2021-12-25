@@ -1,7 +1,7 @@
-const { body } = require('express-validator');
+const { body, query } = require('express-validator');
 
 const PostService = require('../services/postService');
-const { checkReqUser, validateErrors } = require('../utils/validator');
+const { checkReqUser, checkAdminUser, validateErrors } = require('../utils/validator');
 
 const PostServiceInstance = new PostService();
 
@@ -10,22 +10,32 @@ const userValidator = async (req, res, next) => {
 	if (req.params.postId === undefined) return next();
 	const post = await PostServiceInstance.getPost(req.params.postId).catch(err => next(err));
 	if (!post) return res.status(422).json({
+		success: false,
 		error: 'Post does not exist',
 	});
 	return checkReqUser(req, res, next, post.user);
 };
 
-exports.get_posts = async (req, res, next) => {
-	try {
-		const posts = await PostServiceInstance.getPosts();
-		return res.json({
-			success: true,
-			posts,
-		});
-	} catch(err) {
-		return next(err);
+exports.get_posts = [
+	query('admin')
+		.toBoolean(true),
+	async (req, res, next) => {
+		const admin = req.query.admin ?? false;
+		return checkAdminUser(req, res, next, admin);
+	},
+	async (req, res, next) => {
+		try {
+			const admin = req.query.admin ?? false;
+			const posts = await PostServiceInstance.getPosts(admin);
+			return res.json({
+				success: true,
+				posts,
+			});
+		} catch(err) {
+			return next(err);
+		}
 	}
-};
+];
 
 exports.get_post = async (req, res, next) => {
 	try {
@@ -68,11 +78,16 @@ exports.create_post = [
 exports.update_post = [
 	userValidator,
 	body('title')
+		.optional()
 		.trim()
 		.escape(),
 	body('content')
+		.optional()
 		.trim()
 		.escape(),
+	body('published')
+		.optional()
+		.toBoolean(),
 	validateErrors,
 	async (req, res, next) => {
 		try {

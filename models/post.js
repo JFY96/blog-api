@@ -20,9 +20,9 @@ const PostSchema = new Schema({
 		type: Date,
 		default: Date.now(),
 	},
-	private: {
+	published: {
 		type: Boolean,
-		default: true,
+		default: false,
 	},
 });
 
