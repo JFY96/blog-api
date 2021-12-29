@@ -1,7 +1,7 @@
 const { body } = require('express-validator');
 
 const CommentService = require('../services/commentService');
-const { checkReqUser, validateErrors } = require('../utils/validator');
+const { checkReqUser, validateErrors, validatePost } = require('../utils/validator');
 
 const CommentServiceInstance = new CommentService();
 
@@ -14,17 +14,20 @@ const userValidator = async (req, res, next) => {
 	return checkReqUser(req, res, next, comment.user);
 };
 
-exports.get_comments = async (req, res, next) => {
-	try {
-		const comments = await CommentServiceInstance.getComments(req.params.postId);
-		return res.json({
-			success: true,
-			comments,
-		});
-	} catch (e) {
-		return next(e);
+exports.get_comments = [
+	validatePost,
+	async (req, res, next) => {
+		try {
+			const comments = await CommentServiceInstance.getComments(req.params.postId);
+			return res.json({
+				success: true,
+				comments,
+			});
+		} catch (e) {
+			return next(e);
+		}
 	}
-};
+];
 
 exports.get_comment = async (req, res, next) => {
 	try {
@@ -39,6 +42,7 @@ exports.get_comment = async (req, res, next) => {
 };
 
 exports.create_comment = [
+	validatePost,
 	body('name')
 		.trim(),
 	body('content')

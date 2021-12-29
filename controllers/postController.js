@@ -1,9 +1,11 @@
 const { body, query } = require('express-validator');
 
 const PostService = require('../services/postService');
-const { checkReqUser, checkAdminUser, validateErrors } = require('../utils/validator');
+const UserService = require('../services/userService');
+const { checkReqUser, checkAdminUser, validateErrors, validatePost } = require('../utils/validator');
 
 const PostServiceInstance = new PostService();
+const UserServiceInstance = new UserService();
 
 // validator - only allow user who created post, or admin to modify
 const userValidator = async (req, res, next) => {
@@ -37,17 +39,20 @@ exports.get_posts = [
 	}
 ];
 
-exports.get_post = async (req, res, next) => {
-	try {
-		const post = await PostServiceInstance.getPost(req.params.postId);
-		return res.json({
-			success: true,
-			post,
-		});
-	} catch(err) {
-		return next(err);
+exports.get_post = [
+	validatePost,
+	async (req, res, next) => {
+		try {
+			const post = await PostServiceInstance.getPost(req.params.postId);
+			return res.json({
+				success: true,
+				post,
+			});
+		} catch(err) {
+			return next(err);
+		}
 	}
-};
+];
 
 exports.create_post = [
 	body('title')
