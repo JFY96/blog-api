@@ -3,14 +3,14 @@ const Comment = require('../models/comment');
 
 class PostService {
 
-	getPosts = async (admin = false) => {
+	getPosts = async (admin = false, includeCount = false) => {
 		const params = {};
 		if (!admin) {
 			params.published = true;
 		}
-		return Post.find(params)
-			.sort([['timestamp', 'asc']])
-			.exec();
+		const query = Post.find(params)
+			.sort([['timestamp', 'asc']]);
+		return includeCount ? query.populate('commentCount').exec() : query.exec();
 	}
 
 	getPost = async (postId) => {

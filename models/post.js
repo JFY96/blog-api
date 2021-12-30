@@ -35,4 +35,12 @@ PostSchema
 		return this.timestamp.getTime();
 	});
 
+PostSchema
+	.virtual('commentCount', {
+		ref: 'Comment',
+		localField: '_id',
+		foreignField: 'post',
+		count: true,
+	});
+
 module.exports = mongoose.model('Post', PostSchema);

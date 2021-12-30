@@ -21,6 +21,8 @@ const userValidator = async (req, res, next) => {
 exports.get_posts = [
 	query('admin')
 		.toBoolean(true),
+	query('includeCount')
+		.toBoolean(true),
 	async (req, res, next) => {
 		const admin = req.query.admin ?? false;
 		return checkAdminUser(req, res, next, admin);
@@ -28,7 +30,8 @@ exports.get_posts = [
 	async (req, res, next) => {
 		try {
 			const admin = req.query.admin ?? false;
-			const posts = await PostServiceInstance.getPosts(admin);
+			const includeCount = req.query.includeCount ?? false;
+			const posts = await PostServiceInstance.getPosts(admin, includeCount);
 			return res.json({
 				success: true,
 				posts,
