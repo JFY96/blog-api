@@ -5,11 +5,23 @@ const uniqid = require('uniqid');
 const User = require('../models/user');
 
 const refreshTokens = new Map();
+const refreshTokensExpiry = new Map();
 
-const jwtSign = (res, user) => {
+const deleteRefreshToken = (res, token) => {
+	refreshTokens.delete(token);
+	refreshTokensExpiry.delete(token);
+	res.clearCookie('refreshToken');
+};
+
+const refreshTokenExpired = (token) => {
+	return (Date.now() >= refreshTokensExpiry.get(token));
+};
+
+const jwtSign = (req, res, user, freshLogin = false) => {
 	const payload = {
 		user_id: user._id,
 		expires: Date.now() + parseInt(process.env.JWT_EXPIRATION_MS),
+		freshLogin,
 	};
 	// generate a signed json web token
 	jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION_MS.toString() }, (signErr, token) => {
@@ -19,12 +31,22 @@ const jwtSign = (res, user) => {
 				error: 'Could not generate token for user',
 			});
 		}
-		const refreshToken = uniqid(); // TODO expire token and remove from map when no longer valid?
-		refreshTokens.set(refreshToken, user._id.toString());
-		res.cookie('refreshToken', refreshToken, {
-			httpOnly: true,
-			// expires: Date.now() + parseInt(process.env.REFRESH_TOKEN_EXPIRATION_MS),
-		});
+
+		// Handle Refresh Token
+		if (req.cookies?.refreshToken && (payload.freshLogin || refreshTokenExpired(req.cookies.refreshToken))) {
+			deleteRefreshToken(res, req.cookies.refreshToken);
+		}
+		if (!req.cookies?.refreshToken || payload.freshLogin) {
+			const refreshToken = uniqid();
+			const expiry = Date.now() + parseInt(process.env.REFRESH_TOKEN_EXPIRATION_MS);
+			refreshTokens.set(refreshToken, user._id.toString());
+			refreshTokensExpiry.set(refreshToken, expiry);
+			res.cookie('refreshToken', refreshToken, {
+				httpOnly: true,
+				expiry,
+			});
+		}
+
 		res.json({
 			success: true,
 			user: user.username,
@@ -55,7 +77,7 @@ exports.authLocal = (req, res, next) => passport.authenticate(
 					error: 'Could not log in user',
 				});
 			}
-			jwtSign(res, user);
+			jwtSign(req, res, user, true);
 		});
 	}
 )(req, res, next);
@@ -64,28 +86,36 @@ exports.refreshToken = async (req, res, next) => {
 	if (!req.cookies.refreshToken) {
 		return res.status(422).json({
 			success: false,
+			errorCode: 'A001',
 			error: 'No refresh token provided'
 		});
 	}
 	try {
+		if (refreshTokenExpired(req.cookies.refreshToken)) {
+			deleteRefreshToken(res, req.cookies.refreshToken);
+			return res.status(401).json({
+				success: false,
+				errorCode: 'A002',
+				error: 'Refresh token expired'
+			});
+		}
 		const userId = refreshTokens.get(req.cookies.refreshToken);
-		refreshTokens.delete(req.cookies.refreshToken);
 		const user = await User.findById(userId);
 		if (!user) {
 			return res.status(401).json({
 				success: false,
+				errorCode: 'A003',
 				error: 'Invalid refresh token provided'
 			});
 		}
-		jwtSign(res, user);
+		jwtSign(req, res, user);
 	} catch (e) {
 		return next(e);
 	}
 };
 
 exports.removeToken = async (req, res, next) => {
-	refreshTokens.delete(req.cookies.refreshToken);
-	res.clearCookie('refreshToken');
+	deleteRefreshToken(res, req.cookies.refreshToken);
 	return res.json({
 		success: true,
 		error: '',
