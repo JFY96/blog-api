@@ -28,23 +28,6 @@ app.use(morgan('short'));
 app.use(cookieParser());
 app.use(express.json());
 app.use(passport.initialize());
-app.use(cors(
-	{
-		origin: ["http://localhost:8080"], // TODO add in environment variables ?
-		methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-		preflightContinue: false,
-		optionsSuccessStatus: 204,
-		credentials: true,
-	}
-));
-
-// routes
-const authRouter = require('./routes/authRouter');
-const apiPublicRouter = require('./routes/apiPublicRouter');
-const apiRouter = require('./routes/apiRouter');
-app.use('/api/auth', authRouter);
-app.use('/api', authJWTPublic, apiPublicRouter);
-app.use('/api', authJWT, apiRouter);
 
 module.exports = async () => {
 	// MongoDB (mongoose) connection
@@ -55,6 +38,30 @@ module.exports = async () => {
 		});
 		console.log('Connected to MongoDB');
 		mongoose.connection.on('error', console.error.bind(console, "MongoDB connection error"));
+
+		// Allowed Cors URIs
+		const CorsOrigin = require('./models/cors-origin');
+		const origins = await CorsOrigin.find({}).then((corsOriginResult) => {
+			return corsOriginResult.map(corsOrigin => corsOrigin.uri);
+		});
+		app.use(cors(
+			{
+				origin: origins,
+				methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+				preflightContinue: false,
+				optionsSuccessStatus: 204,
+				credentials: true,
+			}
+		));
+		
+		// routes
+		const authRouter = require('./routes/authRouter');
+		const apiPublicRouter = require('./routes/apiPublicRouter');
+		const apiRouter = require('./routes/apiRouter');
+		app.use('/api/auth', authRouter);
+		app.use('/api', authJWTPublic, apiPublicRouter);
+		app.use('/api', authJWT, apiRouter);
+
 	} catch (err) {
 		console.log('Failed to connect to MongoDB');
 		console.error(err);
