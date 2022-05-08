@@ -11,7 +11,7 @@ if (dotenv_result.error && (!process.env.NODE_ENV || process.env.NODE_ENV !== 'p
 const app = express();
 
 // environment variables
-const PORT = process.env.port || 3000;
+const PORT = process.env.PORT || 80;
 
 const DB_URI = process.env.MONGODB_URI || '';
 if (!DB_URI) {
