@@ -2,9 +2,10 @@ const Comment = require('../models/comment');
 
 class CommentService {
 
-	getComments = (postId) => {
+	getComments = (postId, orderBy = '') => {
+		if (orderBy !== 'asc' && orderBy !== 'desc') orderBy = 'desc';
 		return Comment.find({ post: postId })
-			.sort([['timestamp', 'asc']])
+			.sort([['timestamp', orderBy]])
 			.exec();
 	};
 

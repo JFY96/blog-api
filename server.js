@@ -55,7 +55,7 @@ module.exports = async () => {
 		});
 		console.log('Connected to MongoDB');
 		mongoose.connection.on('error', console.error.bind(console, "MongoDB connection error"));
-	} catch {
+	} catch (err) {
 		console.log('Failed to connect to MongoDB');
 		console.error(err);
 	}

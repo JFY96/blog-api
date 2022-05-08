@@ -31,7 +31,8 @@ exports.get_posts = [
 		try {
 			const admin = req.query.admin ?? false;
 			const includeCount = req.query.includeCount ?? false;
-			const posts = await PostServiceInstance.getPosts(admin, includeCount);
+			const orderBy = req.query.order_by ?? '';
+			const posts = await PostServiceInstance.getPosts(admin, includeCount, orderBy);
 			return res.json({
 				success: true,
 				posts,

@@ -18,7 +18,8 @@ exports.get_comments = [
 	validatePost,
 	async (req, res, next) => {
 		try {
-			const comments = await CommentServiceInstance.getComments(req.params.postId);
+			const orderBy = req.query.order_by ?? '';
+			const comments = await CommentServiceInstance.getComments(req.params.postId, orderBy);
 			return res.json({
 				success: true,
 				comments,
