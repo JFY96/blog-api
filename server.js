@@ -5,8 +5,10 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 
-const dotenv_result = require('dotenv').config();
-if (dotenv_result.error) throw dotenv_result.error;
+if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
+	const dotenv_result = require('dotenv').config();
+	if (dotenv_result.error) throw dotenv_result.error;
+}
 
 const app = express();
 
